@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 import { metaMask } from "wagmi/connectors";
 import { createConfig, WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -87,6 +87,7 @@ function Dashboard() {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
   const passport = useCreditPassport();
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [currentScore, setCurrentScore] = useState(850);
@@ -104,6 +105,18 @@ function Dashboard() {
     if (score >= 600) return "Plata";
     return "Bronce";
   };
+
+  // Redes Monad soportadas para operar on-chain.
+  const MONAD_TESTNET_ID = 10143;
+  const MONAD_MAINNET_ID = 143;
+  const NETWORK_NAMES: Record<number, string> = {
+    143: "Monad",
+    10143: "Monad Testnet",
+    31337: "Hardhat Local",
+  };
+  const networkName = NETWORK_NAMES[passport.chainId] ?? `Red ${passport.chainId}`;
+  const isOnMonad =
+    passport.chainId === MONAD_TESTNET_ID || passport.chainId === MONAD_MAINNET_ID;
 
   // Carga los datos reales desde los contratos en Monad cuando el usuario
   // tiene un pasaporte (NFT) minteado. Si no, se muestra el modo demo.
@@ -358,10 +371,45 @@ function Dashboard() {
           </div>
         )}
 
-        {isConnected && !passport.configured && (
+        {/* Red incorrecta: ofrece cambiar/añadir Monad a MetaMask con un clic */}
+        {isConnected && !isOnMonad && (
+          <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#131B2E', borderLeft: '4px solid #FFAA00', border: '1px solid rgba(255, 170, 0, 0.15)' }}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <p className="text-sm" style={{ color: '#8B92A7' }}>
+                <strong style={{ color: '#FFAA00' }}>Red incorrecta:</strong> estás en <strong style={{ color: '#FFFFFF' }}>{networkName}</strong> (Chain ID {passport.chainId}).
+                Cambia a la red Monad para operar on-chain. Si no la tienes, MetaMask te pedirá añadirla.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => switchChain({ chainId: MONAD_TESTNET_ID })}
+                  disabled={isSwitching}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #00FF87 0%, #00D9FF 100%)', color: '#0A0F1E' }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Cambiar a Monad Testnet</span>
+                </button>
+                <button
+                  onClick={() => switchChain({ chainId: MONAD_MAINNET_ID })}
+                  disabled={isSwitching}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 disabled:opacity-50"
+                  style={{ backgroundColor: 'transparent', border: '1px solid #00FF87', color: '#00FF87' }}
+                >
+                  <span>Monad Mainnet</span>
+                </button>
+              </div>
+            </div>
+            {isSwitching && (
+              <p className="mt-2 text-xs" style={{ color: '#00D9FF' }}>Aprueba el cambio de red en MetaMask…</p>
+            )}
+          </div>
+        )}
+
+        {/* En Monad pero sin direcciones de contrato configuradas */}
+        {isConnected && isOnMonad && !passport.configured && (
           <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#131B2E', borderLeft: '4px solid #FFAA00', border: '1px solid rgba(255, 170, 0, 0.15)' }}>
             <p className="text-sm" style={{ color: '#8B92A7' }}>
-              <strong style={{ color: '#FFAA00' }}>Contratos no configurados</strong> en esta red (Chain ID {passport.chainId}).
+              <strong style={{ color: '#FFAA00' }}>Contratos no configurados</strong> en {networkName} (Chain ID {passport.chainId}).
               Despliega en Monad y define <code>NEXT_PUBLIC_MONAD_*</code> en <code>frontend/.env.local</code>. Mostrando datos demo.
             </p>
           </div>

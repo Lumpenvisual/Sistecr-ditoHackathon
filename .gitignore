@@ -56,12 +56,12 @@ venv/
 env/
 ENV/
 
-# OS
+# OS / macOS metadata
 Thumbs.db
-.DS_Store
 *.pem
-._*  # macOS metadata files
+._*
 .DS_Store
+**/.DS_Store
 .AppleDouble
 .LSOverride
 
