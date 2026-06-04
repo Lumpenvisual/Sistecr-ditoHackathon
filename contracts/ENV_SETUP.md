@@ -71,29 +71,23 @@ Si no aparece, agrega `.env` al `.gitignore`.
 Si quieres usar RPCs personalizados, agrega al `.env`:
 
 ```env
-# Astar Networks
-ASTAR_MAINNET_RPC=https://evm.astar.network
-ASTAR_TESTNET_RPC=https://rpc.astar.network:8545
-
-# Celo Networks
-CELO_MAINNET_RPC=https://forno.celo.org
-CELO_ALFAJORES_RPC=https://alfajores-forno.celo-testnet.org
+# Monad Networks (L1 EVM-compatible)
+MONAD_MAINNET_RPC=https://rpc.monad.xyz
+MONAD_TESTNET_RPC=https://testnet-rpc.monad.xyz
 ```
 
 ---
 
 ## 🔐 API Keys para Verificación (Opcionales)
 
-Para verificar contratos en exploradores:
+Para verificar contratos en el explorador (Monadscan):
 
 ```env
-ASTAR_API_KEY=tu_api_key_aqui
-CELO_API_KEY=tu_api_key_aqui
+MONAD_API_KEY=tu_api_key_aqui
 ```
 
 **Cómo obtener API Keys:**
-- **Astar**: https://astar.subscan.io/account/api
-- **Celo**: https://celoscan.io/apis
+- **Monad**: https://monadscan.com (sección de APIs)
 
 ---
 
@@ -103,8 +97,8 @@ Después de crear el `.env`, verifica:
 
 ```bash
 # Verificar balance (sin desplegar)
-npm run check-balance -- --network astar
-npm run check-balance -- --network celo
+npm run check-balance -- --network monad-testnet
+npm run check-balance -- --network monad
 ```
 
 Si funciona, tu configuración es correcta.

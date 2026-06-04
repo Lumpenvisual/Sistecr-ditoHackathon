@@ -118,10 +118,11 @@ async function main() {
     console.log(`RewardSystem: ${deploymentInfo.explorer}/address/${rewardSystemAddress}`);
   }
 
-  console.log("\n💡 Configura estas direcciones en frontend/.env.production:");
-  console.log(`NEXT_PUBLIC_ASTAR_NFT_CONTRACT=${creditNFTAddress}`);
-  console.log(`NEXT_PUBLIC_CELO_REWARD_CONTRACT=${rewardSystemAddress}`);
-  console.log(`NEXT_PUBLIC_LOCAL_CCOP_CONTRACT=${mockCCOPAddress}`);
+  console.log("\n💡 Configura estas direcciones en frontend/.env.local:");
+  console.log(`NEXT_PUBLIC_MONAD_NFT_CONTRACT=${creditNFTAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_REWARD_CONTRACT=${rewardSystemAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_CCOP_CONTRACT=${mockCCOPAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_CHAIN_ID=10143`);
   console.log("\n");
 
   return deploymentInfo;
@@ -129,11 +130,8 @@ async function main() {
 
 function getExplorerUrl(network, chainId) {
   const explorers = {
-    "astar-testnet": "https://blockscout.com/astar-testnet",
-    "astar": "https://astar.subscan.io",
-    "celo-alfajores": "https://alfajores.celoscan.io",
-    "celo": "https://celoscan.io",
-    "shibuya": "https://blockscout.com/astar-shibuya",
+    "monad-testnet": "https://testnet.monadscan.com",
+    "monad": "https://monadscan.com",
   };
 
   if (explorers[network]) {
@@ -142,10 +140,8 @@ function getExplorerUrl(network, chainId) {
 
   // Por chainId
   const chainIdMap = {
-    "592": "https://astar.subscan.io", // Astar Mainnet
-    "4369": "https://blockscout.com/astar-testnet", // Astar Testnet
-    "44787": "https://alfajores.celoscan.io", // Celo Alfajores
-    "42220": "https://celoscan.io", // Celo Mainnet
+    "10143": "https://testnet.monadscan.com", // Monad Testnet
+    "143": "https://monadscan.com", // Monad Mainnet
   };
 
   return chainIdMap[chainId.toString()] || null;

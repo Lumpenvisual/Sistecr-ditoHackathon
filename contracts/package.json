@@ -8,9 +8,11 @@
     "test": "hardhat test",
     "node": "hardhat node",
     "deploy:local": "hardhat run scripts/deploy-local.js --network localhost",
-    "deploy:testnet": "hardhat run scripts/deploy-testnet.js",
-    "deploy:astar": "hardhat run scripts/deploy-mainnet.js --network astar",
-    "deploy:celo": "hardhat run scripts/deploy-mainnet.js --network celo",
+    "deploy:testnet": "hardhat run scripts/deploy-testnet.js --network monad-testnet",
+    "deploy:monad-testnet": "hardhat run scripts/deploy-testnet.js --network monad-testnet",
+    "deploy:monad": "hardhat run scripts/deploy-mainnet.js --network monad",
+    "verify:monad-testnet": "hardhat verify --network monad-testnet",
+    "verify:monad": "hardhat verify --network monad",
     "check-balance": "hardhat run scripts/check-balance.js"
   },
   "keywords": [

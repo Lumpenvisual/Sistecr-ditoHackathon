@@ -12,20 +12,20 @@ async function main() {
   const balance = await hre.ethers.provider.getBalance(deployer.address);
   const balanceFormatted = hre.ethers.formatEther(balance);
   
-  const tokenSymbol = network === "astar" ? "ASTR" : network === "celo" ? "CELO" : "ETH";
+  const tokenSymbol = (network === "monad" || network === "monad-testnet") ? "MON" : "ETH";
   console.log(`Balance: ${balanceFormatted} ${tokenSymbol}`);
-  
+
   const minBalance = hre.ethers.parseEther("0.1");
   if (balance < minBalance) {
     console.log("\n⚠️  ADVERTENCIA: Balance bajo!");
     console.log(`Balance actual: ${balanceFormatted} ${tokenSymbol}`);
     console.log(`Balance mínimo recomendado: 0.1 ${tokenSymbol}`);
     console.log("\n💡 Para obtener tokens:");
-    if (network === "astar") {
-      console.log("   - Compra ASTR en exchange (Binance, Coinbase, etc.)");
-      console.log("   - Transfiere a tu wallet MetaMask");
-    } else if (network === "celo") {
-      console.log("   - Compra CELO en exchange (Binance, Coinbase, etc.)");
+    if (network === "monad-testnet") {
+      console.log("   - Usa el faucet de Monad testnet para obtener MON de prueba");
+      console.log("   - https://faucet.monad.xyz");
+    } else if (network === "monad") {
+      console.log("   - Compra MON en un exchange compatible con Monad");
       console.log("   - Transfiere a tu wallet MetaMask");
     }
   } else {

@@ -8,6 +8,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CreditNFT is ERC721URIStorage, Ownable {
     uint256 private _tokenIds;
 
+    // Score base para los pasaportes auto-emitidos por el usuario (aún sin historial).
+    uint256 public constant INITIAL_SELF_MINT_SCORE = 500;
+
     struct CreditData {
         uint256 paymentScore;
         uint256 consecutivePayments;
@@ -35,11 +38,24 @@ contract CreditNFT is ERC721URIStorage, Ownable {
         authorizedMinters[minter] = true;
     }
 
+    /// @notice Emisión por un emisor autorizado, que puede fijar score y racha iniciales.
     function mintCreditNFT(address to, uint256 paymentScore, uint256 consecutivePayments, string memory tokenURI) external returns (uint256) {
         require(authorizedMinters[msg.sender], "Not authorized to mint");
         require(paymentScore <= 1000, "Invalid payment score");
         require(to != address(0), "Invalid address");
 
+        return _createCreditNFT(to, paymentScore, consecutivePayments, tokenURI);
+    }
+
+    /// @notice Auto-emisión: cualquier usuario crea su propio pasaporte con score base.
+    /// @dev El score solo puede subir después mediante recordPayment (restringido a emisores autorizados).
+    function mintMyPassport(string memory tokenURI) external returns (uint256) {
+        require(activeToken[msg.sender] == 0, "Passport already exists");
+
+        return _createCreditNFT(msg.sender, INITIAL_SELF_MINT_SCORE, 0, tokenURI);
+    }
+
+    function _createCreditNFT(address to, uint256 paymentScore, uint256 consecutivePayments, string memory tokenURI) internal returns (uint256) {
         _tokenIds++;
         uint256 newTokenId = _tokenIds;
 
@@ -106,4 +122,3 @@ contract CreditNFT is ERC721URIStorage, Ownable {
         return (paymentScore / 10) + (consecutivePayments * 2);
     }
 }
-

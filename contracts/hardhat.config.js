@@ -20,55 +20,38 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
-    // Astar Networks
-    "astar-testnet": {
-      url: process.env.ASTAR_TESTNET_RPC || "https://rpc.astar.network:8545",
-      chainId: 4369,
+    // Monad Networks (L1 EVM-compatible)
+    "monad-testnet": {
+      url: process.env.MONAD_TESTNET_RPC || "https://testnet-rpc.monad.xyz",
+      chainId: 10143,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
-    "astar": {
-      url: process.env.ASTAR_MAINNET_RPC || "https://rpc.astar.network:8545",
-      chainId: 592,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-    },
-    "shibuya": {
-      url: process.env.SHIBUYA_RPC || "https://rpc.shibuya.astar.network:8545",
-      chainId: 81,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-    },
-    // Celo Networks
-    "celo-alfajores": {
-      url: process.env.CELO_ALFAJORES_RPC || "https://alfajores-forno.celo-testnet.org",
-      chainId: 44787,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-    },
-    "celo": {
-      url: process.env.CELO_MAINNET_RPC || "https://forno.celo.org",
-      chainId: 42220,
+    "monad": {
+      url: process.env.MONAD_MAINNET_RPC || "https://rpc.monad.xyz",
+      chainId: 143,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
   etherscan: {
     apiKey: {
-      astar: process.env.ASTAR_API_KEY || "",
-      celo: process.env.CELO_API_KEY || "",
-      alfajores: process.env.CELO_API_KEY || "",
+      monad: process.env.MONAD_API_KEY || "",
+      "monad-testnet": process.env.MONAD_API_KEY || "",
     },
     customChains: [
       {
-        network: "astar",
-        chainId: 592,
+        network: "monad",
+        chainId: 143,
         urls: {
-          apiURL: "https://astar.subscan.io/api/scan/verifyContract",
-          browserURL: "https://astar.subscan.io",
+          apiURL: "https://api.monadscan.com/api",
+          browserURL: "https://monadscan.com",
         },
       },
       {
-        network: "celo-alfajores",
-        chainId: 44787,
+        network: "monad-testnet",
+        chainId: 10143,
         urls: {
-          apiURL: "https://api-alfajores.celoscan.io/api",
-          browserURL: "https://alfajores.celoscan.io",
+          apiURL: "https://api-testnet.monadscan.com/api",
+          browserURL: "https://testnet.monadscan.com",
         },
       },
     ],

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { metaMask } from "wagmi/connectors";
 import { createConfig, WagmiProvider, http } from "wagmi";
-import { mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Leaderboard } from "@/components/Leaderboard";
 import { AIPrediction } from "@/components/AIPrediction";
@@ -29,9 +28,37 @@ import { StatsSummary } from "@/components/StatsSummary";
 import { DashboardTabs } from "@/components/DashboardTabs";
 import { WelcomeCard } from "@/components/WelcomeCard";
 import { RecommendedActions } from "@/components/RecommendedActions";
-import { Wallet, LogOut, CreditCard, Trophy, TrendingUp, Menu, X, User } from "lucide-react";
+import { useCreditPassport } from "@/hooks/useCreditPassport";
+import { Wallet, LogOut, CreditCard, Trophy, TrendingUp, Menu, X, User, Droplets, PlusCircle, RefreshCw } from "lucide-react";
 
-// Configurar wagmi para localhost
+// Monad Mainnet (L1 EVM-compatible)
+const monadMainnet = {
+  id: 143,
+  name: "Monad",
+  nativeCurrency: { name: "Monad", symbol: "MON", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://rpc.monad.xyz"] },
+  },
+  blockExplorers: {
+    default: { name: "Monadscan", url: "https://monadscan.com" },
+  },
+} as const;
+
+// Monad Testnet
+const monadTestnet = {
+  id: 10143,
+  name: "Monad Testnet",
+  nativeCurrency: { name: "Monad", symbol: "MON", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://testnet-rpc.monad.xyz"] },
+  },
+  blockExplorers: {
+    default: { name: "Monad Testnet Explorer", url: "https://testnet.monadexplorer.com" },
+  },
+  testnet: true,
+} as const;
+
+// Red local de Hardhat (solo para desarrollo)
 const localhostChain = {
   id: 31337,
   name: "Hardhat Local",
@@ -45,11 +72,12 @@ const localhostChain = {
 } as const;
 
 const config = createConfig({
-  chains: [localhostChain, mainnet],
+  chains: [monadTestnet, monadMainnet, localhostChain],
   connectors: [metaMask()],
   transports: {
+    [monadTestnet.id]: http("https://testnet-rpc.monad.xyz"),
+    [monadMainnet.id]: http("https://rpc.monad.xyz"),
     [localhostChain.id]: http("http://localhost:8545"),
-    [mainnet.id]: http(),
   },
 });
 
@@ -59,10 +87,12 @@ function Dashboard() {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
+  const passport = useCreditPassport();
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [currentScore, setCurrentScore] = useState(850);
   const [consecutivePayments, setConsecutivePayments] = useState(5);
   const [rewards, setRewards] = useState(1250);
+  const [txError, setTxError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -75,13 +105,37 @@ function Dashboard() {
     return "Bronce";
   };
 
+  // Carga los datos reales desde los contratos en Monad cuando el usuario
+  // tiene un pasaporte (NFT) minteado. Si no, se muestra el modo demo.
   useEffect(() => {
-    setIsDemoMode(!isConnected);
-    if (isConnected && address) {
-      // Aquí se cargarían los datos reales desde los contratos
-      // Por ahora usamos datos demo
+    if (isConnected && passport.hasNFT) {
+      setIsDemoMode(false);
+      setCurrentScore(passport.score);
+      setConsecutivePayments(passport.consecutivePayments);
+      setRewards(passport.rewards);
+    } else {
+      setIsDemoMode(true);
     }
-  }, [isConnected, address]);
+  }, [
+    isConnected,
+    passport.hasNFT,
+    passport.score,
+    passport.consecutivePayments,
+    passport.rewards,
+  ]);
+
+  // Helper para ejecutar acciones on-chain y refrescar los datos.
+  const runTx = async (fn: () => Promise<unknown> | undefined) => {
+    setTxError(null);
+    try {
+      await fn();
+      // Da un margen para que la tx se confirme y luego refresca lecturas.
+      setTimeout(() => passport.refetchAll(), 2500);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error en la transacción";
+      setTxError(msg.length > 160 ? msg.slice(0, 160) + "…" : msg);
+    }
+  };
 
   const handleConnect = () => {
     if (config.connectors[0]) {
@@ -291,20 +345,92 @@ function Dashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Demo Mode Banner */}
-        {isDemoMode && (
+        {/* Banner de estado on-chain (Monad) */}
+        {!isConnected && (
           <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#131B2E', borderLeft: '4px solid #00FF87', border: '1px solid rgba(0, 255, 135, 0.1)' }}>
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <span style={{ color: '#00FF87' }}>⚠️</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm" style={{ color: '#8B92A7' }}>
-                  <strong style={{ color: '#FFFFFF' }}>Modo Demo:</strong> Conecta tu wallet de MetaMask para
-                  ver tus datos reales desde la blockchain.
-                </p>
+              <span style={{ color: '#00FF87' }}>⚠️</span>
+              <p className="ml-3 text-sm" style={{ color: '#8B92A7' }}>
+                <strong style={{ color: '#FFFFFF' }}>Modo Demo:</strong> Conecta tu wallet de MetaMask en la red
+                Monad para ver tus datos reales desde la blockchain.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isConnected && !passport.configured && (
+          <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#131B2E', borderLeft: '4px solid #FFAA00', border: '1px solid rgba(255, 170, 0, 0.15)' }}>
+            <p className="text-sm" style={{ color: '#8B92A7' }}>
+              <strong style={{ color: '#FFAA00' }}>Contratos no configurados</strong> en esta red (Chain ID {passport.chainId}).
+              Despliega en Monad y define <code>NEXT_PUBLIC_MONAD_*</code> en <code>frontend/.env.local</code>. Mostrando datos demo.
+            </p>
+          </div>
+        )}
+
+        {isConnected && passport.configured && (
+          <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#131B2E', borderLeft: `4px solid ${passport.hasNFT ? '#00FF87' : '#00D9FF'}`, border: '1px solid rgba(0, 255, 135, 0.1)' }}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <p className="text-sm" style={{ color: '#8B92A7' }}>
+                {passport.hasNFT ? (
+                  <>
+                    <strong style={{ color: '#00FF87' }}>Datos on-chain (Monad):</strong> Pasaporte #{passport.tokenId} ·
+                    Línea de crédito disponible: {passport.creditAvailable.toLocaleString()} mcCOP
+                  </>
+                ) : (
+                  <>
+                    <strong style={{ color: '#00D9FF' }}>Sin pasaporte:</strong> aún no tienes un NFT CrediPass en esta wallet.
+                    Crea el tuyo (score base 500) para empezar.
+                  </>
+                )}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {!passport.hasNFT && (
+                  <button
+                    onClick={() => runTx(() => passport.mintMyPassport())}
+                    disabled={passport.isPending}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 disabled:opacity-50"
+                    style={{ background: 'linear-gradient(135deg, #00FF87 0%, #00D9FF 100%)', color: '#0A0F1E' }}
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Crear pasaporte</span>
+                  </button>
+                )}
+                {passport.hasNFT && passport.isAuthorizedMinter && (
+                  <button
+                    onClick={() => runTx(() => passport.recordPayment(Math.min(passport.score + 25, 1000), passport.consecutivePayments + 1))}
+                    disabled={passport.isPending}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 disabled:opacity-50"
+                    style={{ backgroundColor: 'transparent', border: '1px solid #00FF87', color: '#00FF87' }}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>Registrar pago</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => runTx(() => passport.claimFaucet())}
+                  disabled={passport.isPending}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 disabled:opacity-50"
+                  style={{ backgroundColor: 'transparent', border: '1px solid #00D9FF', color: '#00D9FF' }}
+                >
+                  <Droplets className="w-4 h-4" />
+                  <span>Faucet mcCOP</span>
+                </button>
+                <button
+                  onClick={() => passport.refetchAll()}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300"
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(139, 146, 167, 0.3)', color: '#8B92A7' }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Refrescar</span>
+                </button>
               </div>
             </div>
+            {passport.isPending && (
+              <p className="mt-2 text-xs" style={{ color: '#00D9FF' }}>Confirma la transacción en MetaMask…</p>
+            )}
+            {txError && (
+              <p className="mt-2 text-xs" style={{ color: '#ff4444' }}>{txError}</p>
+            )}
           </div>
         )}
 
@@ -477,7 +603,7 @@ function Dashboard() {
                   isDemoMode={isDemoMode}
                 />
                 <NFTCard
-                  tokenId={isDemoMode ? "DEMO-001" : undefined}
+                  tokenId={passport.hasNFT ? `#${passport.tokenId}` : (isDemoMode ? "DEMO-001" : undefined)}
                   score={currentScore}
                   level={getLevel(currentScore)}
                   isDemoMode={isDemoMode}
@@ -573,7 +699,7 @@ function Dashboard() {
                   score={currentScore}
                   level={getLevel(currentScore)}
                   consecutivePayments={consecutivePayments}
-                  tokenId={isDemoMode ? "DEMO-001" : undefined}
+                  tokenId={passport.hasNFT ? `#${passport.tokenId}` : (isDemoMode ? "DEMO-001" : undefined)}
                   isDemoMode={isDemoMode}
                 />
                 <Achievements

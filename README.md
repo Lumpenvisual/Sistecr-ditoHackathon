@@ -110,9 +110,8 @@ CrediPass utiliza **blockchain y NFTs** para crear un sistema de reputación cre
 - **ERC-20** - Estándar de tokens (cCOP)
 
 ### Blockchain Networks
-- **Celo** - Red principal (Mainnet y Alfajores Testnet)
-- **Astar** - Red secundaria (Opcional)
-- **Hardhat Local** - Desarrollo local
+- **Monad** - Red principal L1 EVM-compatible (Mainnet Chain ID 143 y Testnet Chain ID 10143)
+- **Hardhat Local** - Desarrollo local (Chain ID 31337)
 
 ### Backend (Opcional)
 - **Node-RED** - Flujo de datos y APIs
@@ -132,7 +131,7 @@ CrediPass utiliza **blockchain y NFTs** para crear un sistema de reputación cre
                           │ Web3
                           ▼
 ┌─────────────────────────────────────────────────────────┐
-│              Blockchain (Celo/Astar)                      │
+│                  Blockchain (Monad L1)                    │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
 │  │  CreditNFT   │  │ RewardSystem │  │  MockCCOP    │   │
 │  │   (ERC-721)  │  │              │  │   (ERC-20)   │   │
@@ -247,29 +246,30 @@ chmod +x scripts/start-all.sh
    - Build command: `cd frontend && npm run build`
    - Publish directory: `frontend/.next`
 
-### Contratos (Celo)
+### Contratos (Monad)
 
 1. **Configurar variables de entorno**
    ```bash
    # En contracts/.env
    PRIVATE_KEY=tu_clave_privada
-   CELO_MAINNET_RPC=https://forno.celo.org
+   MONAD_MAINNET_RPC=https://rpc.monad.xyz
+   MONAD_TESTNET_RPC=https://testnet-rpc.monad.xyz
    ```
 
-2. **Desplegar en Alfajores (Testnet)**
+2. **Desplegar en Monad Testnet** (Chain ID 10143)
    ```bash
    cd contracts
-   npm run deploy:testnet
+   npm run deploy:monad-testnet
    ```
 
-3. **Desplegar en Celo Mainnet**
+3. **Desplegar en Monad Mainnet** (Chain ID 143)
    ```bash
-   npm run deploy:celo
+   npm run deploy:monad
    ```
 
 4. **Verificar contratos**
    ```bash
-   npx hardhat verify --network celo CONTRACT_ADDRESS
+   npm run verify:monad -- CONTRACT_ADDRESS [args_del_constructor]
    ```
 
 📖 **Guías detalladas:**
@@ -358,12 +358,12 @@ credipass/
 
 ## 🌍 Contribución al Ecosistema Blockchain
 
-### Para Celo
+### Para Monad
 
-- ✅ **Uso de cCOP**: Integración nativa con el token cCOP de Celo
+- ✅ **Alto rendimiento**: Aprovecha la ejecución paralela y finalidad rápida de Monad (L1 EVM-compatible)
+- ✅ **Token de recompensa cCOP**: Token ERC-20 (mcCOP) desplegado en Monad para gamificar pagos puntuales
 - ✅ **Inclusión Financiera**: Solución para usuarios no bancarizados
-- ✅ **Adopción de Blockchain**: Facilita la adopción de blockchain en Colombia
-- ✅ **Casos de Uso Reales**: Solución práctica para un problema real
+- ✅ **Casos de Uso Reales**: Solución práctica para un problema real, con costos de gas bajos
 
 ### Para el Ecosistema General
 

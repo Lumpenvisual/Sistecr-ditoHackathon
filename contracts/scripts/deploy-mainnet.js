@@ -14,38 +14,32 @@ async function main() {
 
   // Validar que es mainnet
   const mainnetChainIds = {
-    "astar": 592,
-    "celo": 42220,
+    "monad": 143,
   };
 
   if (!mainnetChainIds[network] || mainnetChainIds[network] !== Number(chainId)) {
     console.error("❌ ERROR: Este script solo funciona para Mainnet!");
     console.error(`Red detectada: ${network}, Chain ID: ${chainId}`);
-    console.error("Usa: --network astar o --network celo");
+    console.error("Usa: --network monad");
     process.exit(1);
   }
 
   const [deployer] = await hre.ethers.getSigners();
   console.log("Desplegando con la cuenta:", deployer.address);
-  
+
   const balance = await hre.ethers.provider.getBalance(deployer.address);
   const balanceFormatted = hre.ethers.formatEther(balance);
-  console.log("Balance:", balanceFormatted, network === "astar" ? "ASTR" : "CELO", "\n");
+  console.log("Balance:", balanceFormatted, "MON", "\n");
 
   // Validar balance mínimo
   const minBalance = hre.ethers.parseEther("0.1");
   if (balance < minBalance) {
     console.error("❌ ERROR: Balance insuficiente para desplegar en Mainnet!");
     console.error(`Balance actual: ${balanceFormatted}`);
-    console.error(`Balance mínimo recomendado: 0.1 ${network === "astar" ? "ASTR" : "CELO"}`);
-    console.error("\n💡 Obtén tokens en:");
-    if (network === "astar") {
-      console.error("   - Exchange: Binance, Coinbase, etc.");
-      console.error("   - Transferir a tu wallet MetaMask");
-    } else {
-      console.error("   - Exchange: Binance, Coinbase, etc.");
-      console.error("   - Transferir a tu wallet MetaMask");
-    }
+    console.error("Balance mínimo recomendado: 0.1 MON");
+    console.error("\n💡 Obtén MON en:");
+    console.error("   - Exchange compatible con Monad (MON)");
+    console.error("   - Transferir a tu wallet MetaMask");
     process.exit(1);
   }
 
@@ -164,14 +158,10 @@ async function main() {
   }
 
   console.log("\n💡 Configura estas direcciones en frontend/.env.production:");
-  if (network === "astar") {
-    console.log(`NEXT_PUBLIC_ASTAR_NFT_CONTRACT=${creditNFTAddress}`);
-    console.log(`NEXT_PUBLIC_ASTAR_CHAIN_ID=592`);
-  } else if (network === "celo") {
-    console.log(`NEXT_PUBLIC_CELO_REWARD_CONTRACT=${rewardSystemAddress}`);
-    console.log(`NEXT_PUBLIC_CELO_CHAIN_ID=42220`);
-  }
-  console.log(`NEXT_PUBLIC_LOCAL_CCOP_CONTRACT=${mockCCOPAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_NFT_CONTRACT=${creditNFTAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_REWARD_CONTRACT=${rewardSystemAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_CCOP_CONTRACT=${mockCCOPAddress}`);
+  console.log(`NEXT_PUBLIC_MONAD_CHAIN_ID=143`);
   console.log("\n");
 
   console.log("📝 Próximos pasos:");
@@ -186,8 +176,7 @@ async function main() {
 
 function getExplorerUrl(network, chainId) {
   const explorers = {
-    "astar": "https://astar.subscan.io",
-    "celo": "https://celoscan.io",
+    "monad": "https://monadscan.com",
   };
 
   if (explorers[network]) {
@@ -196,8 +185,7 @@ function getExplorerUrl(network, chainId) {
 
   // Por chainId
   const chainIdMap = {
-    "592": "https://astar.subscan.io", // Astar Mainnet
-    "42220": "https://celoscan.io", // Celo Mainnet
+    "143": "https://monadscan.com", // Monad Mainnet
   };
 
   return chainIdMap[chainId.toString()] || null;
