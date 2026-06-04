@@ -28,6 +28,14 @@ portátil y verificable en cualquier comercio.
 - La app entra en **modo demo** hasta que haya contratos desplegados y direcciones en
   `frontend/.env.local`.
 
+## Tests
+- E2E con Playwright en `frontend/e2e/`. Config en `frontend/playwright.config.ts`
+  (levanta el dev server solo; corre en serie con 1 worker para no saturar la
+  compilación on-demand de Next). Ejecutar: `cd frontend && npm run test:e2e`.
+- `demo-mode.spec.ts` cubre el modo demo (carga, banner, métricas, navegación de tabs).
+  Usar `.first()` / scope por rol: muchos textos se repiten en varias tarjetas.
+- Contratos: `contracts/test/CrediPass.test.js` (`npm test` en `contracts/`).
+
 ## Conexión a Monad
 - La UI ofrece botones de cambio/alta de red (Monad Testnet/Mainnet) vía `useSwitchChain`.
 - Si MetaMask no tiene la red, la añade automáticamente con la config de chains de `page.tsx`.
